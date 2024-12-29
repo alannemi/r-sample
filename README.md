@@ -1,3 +1,153 @@
 # r-sample
 
-Test text to see what happens
+#working through and visualising data from the v-dem dataset
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+setwd("~/Desktop/V-Dem-CY-FullOthers-v14_csv_YyKfizl")
+
+#loading data
+
+file <- "V-Dem-CY-Full+Others-v14.csv"
+vdem.raw <- read.table(file, sep = ",", header = TRUE)
+
+#cleaning up data
+
+vdem.clean <- vdem.raw %>%
+  select(Country = country_name, iso3c = country_text_id, COWcode,
+         Year = year,
+         Electoral = v2x_polyarchy,
+         Liberal = v2x_libdem,
+         Participatory = v2x_partipdem,
+         Deliberative = v2x_delibdem,
+         Egalitarian = v2x_egaldem) %>%
+  tibble::as_tibble()
+
+dim(vdem.clean)
+
+vdem <-vdem.clean %>%
+  gather(Dimension, score, -Country, -iso3c, -COWcode, -Year)
+
+#visualising densities of measures across the globe at a given point in time
+ggplot(filter(vdem, Year == (2013)), 
+       aes(x = score, color = Dimension, fill = Dimension)) +
+  geom_density(alpha = 0.4)
+
+#visualising specific countries over time (across all measures)
+
+selected.country<-"Zimbabwe"
+vdem.country<-filter(vdem, Country==selected.country)
+
+ggplot(vdem.country, aes(x = Year, y = score,
+      group = Dimension, color = Dimension)) +
+  geom_line()
+
+#comparing countries across democratic dimensions
+selected.countries <- c("Venezuela", "Cambodia", "Zimbabwe")
+vdem.countries <- filter(vdem, Country == selected.countries)
+
+ggplot(vdem.countries, aes(x = Year, y = score, color = Country)) +
+  geom_line() +
+  scale_x_continuous(limits = c(1950, 2024), breaks = seq(1950, 2024, by = 15)) +
+  expand_limits(y = c(0, 1)) +
+  facet_wrap(~ Dimension) +
+  labs(
+    title = "Indicators of Democracy Over Time",
+    x = "Year",
+    y = "V-Dem Index Score",
+    caption = "Source: V-Dem Database (Coppedge, Gerring, et al., 2024)")+
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.text = element_text(size = 8),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    text = element_text(family = "Times New Roman")
+  )
+
+#making a graph of the electoral democracy index
+vdem_elec <- vdem %>% filter(Dimension=="Electoral")
+
+selected.countries <- c("Venezuela", "Cambodia", "Zimbabwe")
+vdem.countries_elec <- filter(vdem_elec, Country == selected.countries)
+
+ggplot(vdem.countries_elec, aes(x = Year, y = score, color = Country)) +
+  geom_line() +
+  scale_x_continuous(limits = c(1950, 2024), breaks = seq(1950, 2024, by = 10)) +
+  expand_limits(y = c(0, 1)) +
+  labs(
+    title = "Quality of Democracy Over Time",
+    x = "Year",
+    y = "Electoral Democracy Index Score",
+    caption = "Source: V-Dem Database (Coppedge et al., 2024)") +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.text = element_text(size = 8),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    text = element_text(family = "Times New Roman")
+    )
+
+#making a graph of the mean democracy index scores for countries over time
+
+vdem_mean <- vdem.clean %>%
+  group_by(Country, Year) %>%
+  rowwise() %>%
+  mutate(mean_index = mean(c(Electoral, Liberal, Participatory, Deliberative, Egalitarian), na.rm = TRUE)) %>%
+  ungroup()
+
+selected.countries <- c("Venezuela", "Cambodia", "Zimbabwe")
+vdem.countries_mean <- filter(vdem_mean, Country == selected.countries)
+
+ggplot(vdem.countries_mean, aes(x = Year, y = mean_index, color = Country)) +
+  geom_line() +
+  scale_x_continuous(limits = c(1950, 2024), breaks = seq(1950, 2024, by = 10)) +
+  expand_limits(y = c(0, 1)) +
+  labs(
+    title = "Quality of Democracy Over Time",
+    x = "Year",
+    y = "Mean V-Dem Index Score",
+    caption = "Source: V-Dem Database (Coppedge, Gerring, et al., 2024)") +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.text = element_text(size = 8),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    text = element_text(family = "Times New Roman")
+  )
+
+#looking at country-specific episodes of democratization and autocratization using ERT databse (subset of V-Dem database)
+library(devtools)
+devtools::install_github("vdeminstitute/ERT")
+
+library(ERT)
+
+plot_episodes(years = c(1950, 2023),
+              country = "Venezuela")
+
+# making map of selected cases
+
+install.packages(c("ggplot2", "rnaturalearth", "rnaturalearthdata"))
+library(ggplot2)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+countries <- c("Zimbabwe", "Venezuela", "Cambodia")
+
+world$highlight <- ifelse(world$name %in% highlighted_countries, "Case Study", "Other")
+
+ggplot(data = world) +
+  geom_sf(aes(fill = highlight), color = "gray") +
+  scale_fill_manual(values = c("Case Study" = "red", "Other" = "lightgray")) +
+  theme_minimal() +
+  labs(title = "Report Case Studies in a Global Perspective",
+       fill = "Country Status") +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.text = element_text(size = 8),
+    axis.title = element_text(size = 12),
+    legend.position = "bottom",
+    text = element_text(family = "Times New Roman")
+  )
