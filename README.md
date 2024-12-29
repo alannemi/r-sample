@@ -1,6 +1,6 @@
 # r-sample
 
-#working through and visualising data from the v-dem dataset
+# working through and visualising data from the v-dem dataset
 
 library(dplyr)
 library(tidyr)
@@ -8,12 +8,12 @@ library(ggplot2)
 
 setwd("~/Desktop/V-Dem-CY-FullOthers-v14_csv_YyKfizl")
 
-#loading data
+# loading data
 
 file <- "V-Dem-CY-Full+Others-v14.csv"
 vdem.raw <- read.table(file, sep = ",", header = TRUE)
 
-#cleaning up data
+# cleaning up data
 
 vdem.clean <- vdem.raw %>%
   select(Country = country_name, iso3c = country_text_id, COWcode,
@@ -30,12 +30,12 @@ dim(vdem.clean)
 vdem <-vdem.clean %>%
   gather(Dimension, score, -Country, -iso3c, -COWcode, -Year)
 
-#visualising densities of measures across the globe at a given point in time
+# visualising densities of measures across the globe at a given point in time
 ggplot(filter(vdem, Year == (2013)), 
        aes(x = score, color = Dimension, fill = Dimension)) +
   geom_density(alpha = 0.4)
 
-#visualising specific countries over time (across all measures)
+# visualising specific countries over time (across all measures)
 
 selected.country<-"Zimbabwe"
 vdem.country<-filter(vdem, Country==selected.country)
@@ -44,7 +44,7 @@ ggplot(vdem.country, aes(x = Year, y = score,
       group = Dimension, color = Dimension)) +
   geom_line()
 
-#comparing countries across democratic dimensions
+# comparing countries across democratic dimensions
 selected.countries <- c("Venezuela", "Cambodia", "Zimbabwe")
 vdem.countries <- filter(vdem, Country == selected.countries)
 
@@ -66,7 +66,7 @@ ggplot(vdem.countries, aes(x = Year, y = score, color = Country)) +
     text = element_text(family = "Times New Roman")
   )
 
-#making a graph of the electoral democracy index
+# making a graph of the electoral democracy index
 vdem_elec <- vdem %>% filter(Dimension=="Electoral")
 
 selected.countries <- c("Venezuela", "Cambodia", "Zimbabwe")
@@ -89,7 +89,7 @@ ggplot(vdem.countries_elec, aes(x = Year, y = score, color = Country)) +
     text = element_text(family = "Times New Roman")
     )
 
-#making a graph of the mean democracy index scores for countries over time
+# making a graph of the mean democracy index scores for countries over time
 
 vdem_mean <- vdem.clean %>%
   group_by(Country, Year) %>%
@@ -117,7 +117,7 @@ ggplot(vdem.countries_mean, aes(x = Year, y = mean_index, color = Country)) +
     text = element_text(family = "Times New Roman")
   )
 
-#looking at country-specific episodes of democratization and autocratization using ERT databse (subset of V-Dem database)
+# looking at country-specific episodes of democratization and autocratization using ERT databse (subset of V-Dem database)
 library(devtools)
 devtools::install_github("vdeminstitute/ERT")
 
