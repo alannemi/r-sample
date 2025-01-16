@@ -1,6 +1,7 @@
 #GV249 2023/24 Summative Problem Set - Part III: Application
-#Candidate number: 21151
 #All interpretations and written components in this part have been written in the original submission document.
+
+#Setting up the data
 
 rm(list=ls())
 
@@ -13,7 +14,7 @@ setwd("~/GV249/summative problem set")
 
 data<-read_rds("BES_summative.RDS") 
 
-#Exercise 1a
+#Exercise 1a - Recoding and aggregating data on education and political interest (based on survey responses)
 
 with(data, table(polinterest, edlevel))
 
@@ -50,12 +51,12 @@ table1<-
 
 table1
 
-#Exercise 1b
+#Exercise 1b - Simple linear regression (Relationship between university education and political interest)
 
 lm1<-lm_robust(polint~edlevel_uni_num, data=data, se_type="classical")
 summary(lm1)
 
-#Exercise 2a
+#Exercise 2a - Cleaning up data and visualizing mean Facebook use by age group
 
 data$age<-data$Age
 data$age[data$age==-2]<-NA
@@ -78,17 +79,17 @@ data_tab1 <-
 ggplot(data_tab1 , aes(x=age, y=mean_Facebookuse)) +
   geom_point(size=2, shape=23) + ylab("Facebookuse") + xlab("Age")  +  scale_x_continuous(breaks=c(20, 30, 40, 50, 60, 70, 80, 90, 100)) + theme_bw()
 
-#Exercise 2b
+#Exercise 2b - Visualising association between Facebook use and Age
 
 ggplot(data_tab1 , aes(x=age, y=mean_Facebookuse)) +
   geom_point(size=2, shape=23) + geom_smooth(method=lm, se=FALSE) + ylab("Facebook use") + xlab("Age") + scale_x_continuous(breaks=c(20, 30, 40, 50, 60, 70, 80, 90, 100)) + theme_bw()
 
-#Exercise 3a
+#Exercise 3a - Simple linear regression (Relationship between Facebook Use and Age)
 
 lm2<-lm_robust(Facebook_re~age, data=data, se_type="classical")
 summary(lm2)
 
-#Exercise 3c
+#Exercise 3c - Calculating predicted Facebook usage for Age 27 (including setting up OLS regression)
 
 #Predicteduse_i=(alpha)+(beta)*age_i+(epsilon)_i
 
@@ -96,7 +97,7 @@ summary(lm2)
 
 1.15+(-0.01)*27
 
-#Exercise 3d
+#Exercise 3d - Calculating predicted Facebook usage based for Age 16 (including setting up OLS regression)
 
 #Predicteduse_i=(alpha)+(beta)*age_i+(epsilon)_i
 
