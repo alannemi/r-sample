@@ -1,0 +1,105 @@
+#GV249 2023/24 Summative Problem Set - Part III: Application
+#Candidate number: 21151
+#All interpretations and written components in this part have been written in the original submission document.
+
+rm(list=ls())
+
+library(readstata13)
+library(tidyverse)
+library(estimatr)
+library(xtable)
+
+setwd("~/GV249/summative problem set")
+
+data<-read_rds("BES_summative.RDS") 
+
+#Exercise 1a
+
+with(data, table(polinterest, edlevel))
+
+data$polint<-NA 
+
+data$polint[data$polinterest=="Not at all interested"]<-0
+data$polint[data$polinterest=="Not very interested"]<-1
+data$polint[data$polinterest=="Fairly interested"]<-2
+data$polint[data$polinterest=="Very interested"]<-3
+data$polint[data$polinterest=="Don't know"]<-NA
+data$polint[data$polinterest=="Not stated"]<-NA
+
+data$edlevel_uni<-NA
+
+data$edlevel_uni[data$edlevel=="Postgrad"]<-"University"
+data$edlevel_uni[data$edlevel=="Undergraduate"]<-"University"
+data$edlevel_uni[data$edlevel=="A-level"]<-"Other"
+data$edlevel_uni[data$edlevel=="GCSE"]<-"Other"
+data$edlevel_uni[data$edlevel=="Below GCSE"]<-"Other"
+data$edlevel_uni[data$edlevel=="No qualifications"]<-"Other"
+
+data$edlevel_uni_num<-NA
+
+data$edlevel_uni_num[data$edlevel_uni=="University"]<-1
+data$edlevel_uni_num[data$edlevel_uni=="Other"]<-0
+
+with(data, table(polint, edlevel_uni_num))
+
+table1<-
+  data %>% 
+  summarise(mean_polint = mean(polint, na.rm=TRUE),
+            mean_uni_level = with(data, mean(edlevel_uni_num, na.rm = TRUE)),
+            var_uni_level = var(edlevel_uni_num, na.rm=TRUE))
+
+table1
+
+#Exercise 1b
+
+lm1<-lm_robust(polint~edlevel_uni_num, data=data, se_type="classical")
+summary(lm1)
+
+#Exercise 2a
+
+data$age<-data$Age
+data$age[data$age==-2]<-NA
+data$age[data$age==-999]<-NA
+data$age[data$age==99]<-NA
+
+data$age<-ifelse(data$age > 90, 90, data$age)
+
+with(data, table(useFacebook))
+data$Facebook_re<-NA 
+data$Facebook_re[data$useFacebook=="Don't Know"]<-NA
+data$Facebook_re[data$useFacebook=="Yes"]<-1
+data$Facebook_re[data$useFacebook=="No"]<-0
+
+data_tab1 <-
+  data %>% 
+  group_by(age)  %>% 
+  summarise(mean_Facebookuse = mean(Facebook_re, na.rm=TRUE))
+
+ggplot(data_tab1 , aes(x=age, y=mean_Facebookuse)) +
+  geom_point(size=2, shape=23) + ylab("Facebookuse") + xlab("Age")  +  scale_x_continuous(breaks=c(20, 30, 40, 50, 60, 70, 80, 90, 100)) + theme_bw()
+
+#Exercise 2b
+
+ggplot(data_tab1 , aes(x=age, y=mean_Facebookuse)) +
+  geom_point(size=2, shape=23) + geom_smooth(method=lm, se=FALSE) + ylab("Facebook use") + xlab("Age") + scale_x_continuous(breaks=c(20, 30, 40, 50, 60, 70, 80, 90, 100)) + theme_bw()
+
+#Exercise 3a
+
+lm2<-lm_robust(Facebook_re~age, data=data, se_type="classical")
+summary(lm2)
+
+#Exercise 3c
+
+#Predicteduse_i=(alpha)+(beta)*age_i+(epsilon)_i
+
+#Predicteduse_i = 1.15+(-0.01)*age
+
+1.15+(-0.01)*27
+
+#Exercise 3d
+
+#Predicteduse_i=(alpha)+(beta)*age_i+(epsilon)_i
+
+#Predicteduse_i = 1.15+(-0.01)*age
+
+1.15+(-0.01)*16
